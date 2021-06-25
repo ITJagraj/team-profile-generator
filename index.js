@@ -13,6 +13,18 @@ const ManagerQuestions = require('./lib/EngineerQuestions');
 const InternQuestions = require('./lib/EngineerQuestions');
 
 
+const { writeFile, copyFile } = require('./util/generate-site');
+
+//importing layout template file
+const generatePage = require('./src/page-template');
+//Array to hold team members
+const teamProfile = {
+    manager: [],
+    engineer: [],
+    intern: [],
+};
+
+
 
 const questions = [
     {
@@ -21,13 +33,13 @@ const questions = [
         message: 'What is the employee\'s role?',
         choices: // function to allow only one manager to be created
             () => {
-            if (allEmployees.some(employee => employee.role === 'Manager')) {
-                return ['Engineer', 'Intern']    
-            } else {
-                return ['Manager', 'Engineer', 'Intern']
+                if (allEmployees.some(employee => employee.role === 'Manager')) {
+                    return ['Engineer', 'Intern']
+                } else {
+                    return ['Manager', 'Engineer', 'Intern']
+                }
             }
-        }
     },
     {
-        
+
     }
