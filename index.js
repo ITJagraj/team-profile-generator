@@ -1,45 +1,103 @@
-const inuirer = require('inquirer');
-const fs = require('fs');
-
-//importing constructor functinos 
+const inquirer = require('inquirer');
 const Employee = require('./lib/Employee');
-const Employee = require('./lib/Engineer');
-const Employee = require('./lib/Intern');
-const Employee = require('./lib/Manager');
-
-//importing questions
-const EngineerQuestions = require('./lib/EngineerQuestions');
-const ManagerQuestions = require('./lib/EngineerQuestions');
-const InternQuestions = require('./lib/EngineerQuestions');
-
-
-const { writeFile, copyFile } = require('./util/generate-site');
-
-//importing layout template file
+const Manager = require('./lib/Manager');
+const Engineer = require('./lib/Engineer');
+const Intern = require('./lib/Intern');
 const generatePage = require('./src/page-template');
-//Array to hold team members
-const teamProfile = {
-    manager: [],
-    engineer: [],
-    intern: [],
-};
-
-
-
-const questions = [
-    {
-        type: 'list',
-        name: 'role',
-        message: 'What is the employee\'s role?',
-        choices: // function to allow only one manager to be created
-            () => {
-                if (allEmployees.some(employee => employee.role === 'Manager')) {
-                    return ['Engineer', 'Intern']
-                } else {
-                    return ['Manager', 'Engineer', 'Intern']
-                }
+const writeFile = require('./src/generate-site')
+let manager = [];
+let engineer = [];
+let intern = [];
+let employeeArr = {manager, engineer, intern};
+function Prompt() {
+    return inquirer
+        .prompt([
+        {
+            type: 'list',
+            name: 'role',
+            message:"What is the employee's title?",
+            choices: ['Manager', 'Engineer', 'Intern']
+        },
+        {
+            type:'input',
+            name: 'employee',
+            message: "What is the Employee's name?"
+        },
+        {
+            type:'input',
+            name: 'id',
+            message: "What is the employee's ID number?"
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: "What is the employee's email?"
+        }])
+        .then(({employee, id, email, role}) => {
+            if (role === "Manager") {
+                return inquirer
+                    .prompt([{
+                        type:'input',
+                        name: 'officeNumber',
+                        message:"What is the Manager's office number?"
+                    },
+                    {
+                        type:'confirm',
+                        name:'addMore',
+                        message: "What you like to add another employee?",
+                        default: false
+                    }])
+                    .then(({officeNumber, addMore}) => {
+                        manager.push(new Manager(employee, id, email, officeNumber))
+                        if (addMore) {
+                            return Prompt();
+                        }
+                    })
+            } else if (role === "Engineer") {
+                return inquirer
+                    .prompt([{
+                        type: 'input',
+                        name: 'github',
+                        message: "What is the Engineer's Github username?"
+                    },
+                    {
+                        type:'confirm',
+                        name:'addMore',
+                        message: "What you like to add another employee?",
+                        default: false
+                    }])
+                    .then(({github, addMore}) => {
+                        engineer.push(new Engineer(employee, id, email, github))
+                        if (addMore) {
+                            return Prompt();
+                        }
+                    })
+            } else if (role === 'Intern') {
+                 return inquirer
+                    .prompt([{
+                        type:'text',
+                        name:'school',
+                        message: "What is the Intern's school?"
+                    },
+                    {
+                        type:'confirm',
+                        name:'addMore',
+                        message: "What you like to add another employee?",
+                        default: false
+                    }])
+                    .then(({school, addMore}) => {
+                        intern.push(new Intern(employee, id, email, school))
+                        if (addMore) {
+                            return Prompt();
+                        }
+                    })
             }
-    },
-    {
-
-    }
+        })
+};
+Prompt()
+    .then(teamData => {
+        return generatePage(employeeArr)
+    })
+    .then(pageHTML => {
+        return writeFile(pageHTML)
+    })
